@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { config } from "../../../../config";
+import { soundManager } from "../../../components/soundManager";
 
 interface TimerProps {
   onComplete?: () => void;
@@ -23,6 +24,7 @@ const Timer: React.FC<TimerProps> = ({ onComplete, onMidpoint }) => {
     let startTime: number | null = null;
     let animationFrame: number;
     let midpointTriggered = false;
+    let lastPlayedSecond: number = config.timeToPlay;
 
     const animate = (timestamp: number) => {
       startTime ??= timestamp;
@@ -32,6 +34,17 @@ const Timer: React.FC<TimerProps> = ({ onComplete, onMidpoint }) => {
 
       setProgress(newProgress);
       setTimeLeft(remainingTime);
+
+      // Play tick sound every second
+      if (remainingTime < lastPlayedSecond && remainingTime > 0) {
+        soundManager.playTick();
+        lastPlayedSecond = remainingTime;
+      }
+
+      // Play warning sound when 30% time remaining (70% progress)
+      if (newProgress >= 0.7 && !midpointTriggered) {
+        soundManager.playTimeWarning();
+      }
 
       // Trigger midpoint callback when progress reaches 50%
       if (newProgress >= 0.5 && !midpointTriggered) {
@@ -49,7 +62,7 @@ const Timer: React.FC<TimerProps> = ({ onComplete, onMidpoint }) => {
     animationFrame = requestAnimationFrame(animate);
 
     return () => cancelAnimationFrame(animationFrame);
-  }, []); // Remove onComplete dependency
+  }, [duration]); // Add duration dependency
 
   const circumference = 2 * Math.PI * 24; // radio de 24
   const strokeDashoffset = circumference - progress * circumference;
@@ -69,7 +82,7 @@ const Timer: React.FC<TimerProps> = ({ onComplete, onMidpoint }) => {
 
   return (
     <div className="z-10">
-      <div className="relative w-16 h-16 bg-white rounded-full shadow-lg border-2 border-gray-200">
+      <div className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white rounded-full shadow-lg border-2 border-gray-200">
         {/* Círculo de progreso */}
         <svg className="w-full h-full -rotate-90" viewBox="0 0 64 64">
           {/* Círculo de fondo (tiempo restante - claro) */}
@@ -101,7 +114,9 @@ const Timer: React.FC<TimerProps> = ({ onComplete, onMidpoint }) => {
         {/* Centro del cronómetro */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <div className={`text-3xl font-bold ${getTextColor()}`}>
+            <div
+              className={`text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold ${getTextColor()}`}
+            >
               {timeLeft}
             </div>
           </div>

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import useGetQuiz from "@/api/services/get/useGetQuiz";
 import useAuth from "@/hooks/useAuth";
 import { config } from "../../../config";
+import { soundManager } from "../../components/soundManager";
 
 // Colección de gradientes
 const gradients = [
@@ -27,22 +28,23 @@ const useQuizzPage = () => {
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [isAnswerCorrect, setIsAnswerCorrect] = useState<boolean | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [score, setScore] = useState(0);
+  const [score, setScore] = useState(1);
   const [timerKey, setTimerKey] = useState(0);
   const [isAutoRunning, setIsAutoRunning] = useState(false);
   const [isQuestionVisible, setIsQuestionVisible] = useState(false);
   const [isAnswersVisible, setIsAnswersVisible] = useState(false);
   const [isImageVisible, setIsImageVisible] = useState(false);
   const [gamePhase, setGamePhase] = useState<
-    "loading" | "countdown" | "playing" | "finished"
+    "loading" | "waiting-for-input" | "countdown" | "playing" | "finished"
   >("loading");
   const [countdownNumber, setCountdownNumber] = useState(3);
   const [transitionProgress, setTransitionProgress] = useState(0);
   const [isTransitionProgressVisible, setIsTransitionProgressVisible] =
     useState(false);
   const [isAnswerHighlightActive, setIsAnswerHighlightActive] = useState(false);
+  const [isSoundEnabled, setIsSoundEnabled] = useState(true);
+  const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
 
   const {
     data: quiz,
@@ -59,6 +61,11 @@ const useQuizzPage = () => {
   const totalQuestions = quiz?.preguntas.length || 0;
   const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
 
+  const startQuizzAfterRecordingConfirmed = () => {
+    setGamePhase("countdown");
+    startCountdown();
+  };
+
   // Efecto para seleccionar gradiente aleatorio al cargar la página
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * gradients.length);
@@ -68,8 +75,7 @@ const useQuizzPage = () => {
   // Auto-run effect: Start the auto-run when quiz is loaded
   useEffect(() => {
     if (quiz && !isLoading && gamePhase === "loading") {
-      setGamePhase("countdown");
-      startCountdown();
+      setGamePhase("waiting-for-input");
     }
   }, [quiz, isLoading, gamePhase]);
 
@@ -84,6 +90,16 @@ const useQuizzPage = () => {
     // Seleccionar un gradiente al azar al cargar el componente
     selectRandomGradient();
   }, []);
+
+  // Effect to sync sound manager with sound enabled state
+  useEffect(() => {
+    soundManager.setEnabled(isSoundEnabled);
+  }, [isSoundEnabled]);
+
+  // Sound toggle function
+  const toggleSound = () => {
+    setIsSoundEnabled(!isSoundEnabled);
+  };
 
   // Countdown function
   const startCountdown = () => {
@@ -156,7 +172,6 @@ const useQuizzPage = () => {
     if (correctAnswerIndex !== undefined) {
       setSelectedAnswer(correctAnswerIndex);
       setIsAnswerCorrect(true);
-      setScore(score + 1);
     }
 
     setIsTransitioning(true);
@@ -168,6 +183,7 @@ const useQuizzPage = () => {
       setTransitionProgress((prev) => {
         if (prev >= 100) {
           clearInterval(progressInterval);
+
           return 100;
         }
         return prev + 100 / (config.timeToReview * 10); // frames over timeToReview seconds (100ms per frame)
@@ -181,6 +197,7 @@ const useQuizzPage = () => {
       if (isLastQuestion) {
         setGamePhase("finished");
       } else {
+        setIsAnswerCorrect(false); // Reset answer correctness for next question
         // Start fade out animation
         setIsQuestionVisible(false);
         setIsImageVisible(false);
@@ -189,8 +206,8 @@ const useQuizzPage = () => {
         setTimeout(() => {
           // Reset all states for the new question immediately
           setCurrentQuestionIndex(currentQuestionIndex + 1);
+          setScore(score + 1);
           setSelectedAnswer(null);
-          setIsAnswerCorrect(null);
           setIsTransitioning(false);
           setTimerKey(timerKey + 1); // Reset timer for next question
           setIsAnswerHighlightActive(false); // Reset highlight state
@@ -229,12 +246,6 @@ const useQuizzPage = () => {
     if (isAutoRunning || selectedAnswer !== null || isTransitioning) return;
 
     setSelectedAnswer(answerIndex);
-    const correct = answerIndex === currentQuestion?.indiceRespuestaCorrecta;
-    setIsAnswerCorrect(correct);
-
-    if (correct) {
-      setScore(score + 1);
-    }
 
     setIsTransitioning(true);
     setIsTransitionProgressVisible(true);
@@ -266,8 +277,8 @@ const useQuizzPage = () => {
         setTimeout(() => {
           // Reset all states for the new question immediately
           setCurrentQuestionIndex(currentQuestionIndex + 1);
+          setScore(score + 1);
           setSelectedAnswer(null);
-          setIsAnswerCorrect(null);
           setIsTransitioning(false);
           setTimerKey(timerKey + 1); // Reset timer for next question
           setIsAnswerHighlightActive(false); // Reset highlight state
@@ -292,9 +303,8 @@ const useQuizzPage = () => {
   const resetQuiz = () => {
     setCurrentQuestionIndex(0);
     setSelectedAnswer(null);
-    setIsAnswerCorrect(null);
     setIsTransitioning(false);
-    setScore(0);
+    setScore(1);
     setTimerKey(timerKey + 1); // Reset timer
     setGamePhase("countdown");
     setCountdownNumber(3);
@@ -322,9 +332,10 @@ const useQuizzPage = () => {
     currentQuestionIndex,
     totalQuestions,
     selectedAnswer,
-    isAnswerCorrect,
     isTransitioning,
     score,
+    startQuizzAfterRecordingConfirmed,
+    isAnswerCorrect,
     handleAnswerClick,
     resetQuiz,
     timerKey,
@@ -339,6 +350,8 @@ const useQuizzPage = () => {
     transitionProgress,
     isTransitionProgressVisible,
     isAnswerHighlightActive,
+    isSoundEnabled,
+    toggleSound,
   };
 };
 

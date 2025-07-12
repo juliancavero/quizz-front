@@ -11,16 +11,18 @@ const AuthErrorPhase: React.FC<AuthErrorPhaseProps> = ({
 }) => {
   return (
     <div
-      className={`min-h-screen ${gradient} flex items-center justify-center p-4`}
+      className={`min-h-screen ${gradient} flex items-center justify-center p-0.5 sm:p-1`}
     >
-      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full">
+      <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl p-3 sm:p-4 md:p-6 max-w-xs sm:max-w-sm md:max-w-lg w-full">
         <div className="flex flex-col items-center text-center">
           <Title>Error de autenticación</Title>
-          <p className="text-red-600 mt-2">No se pudo autenticar el usuario</p>
+          <p className="text-red-600 mt-2 text-sm sm:text-base">
+            No se pudo autenticar el usuario
+          </p>
           {onRetry && (
             <button
               onClick={onRetry}
-              className="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors mt-4"
+              className="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-3 sm:px-4 rounded-lg transition-colors mt-3 sm:mt-4 text-sm sm:text-base"
             >
               Reintentar
             </button>

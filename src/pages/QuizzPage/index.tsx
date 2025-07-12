@@ -38,6 +38,9 @@ const QuizzPage = () => {
     transitionProgress,
     isTransitionProgressVisible,
     isAnswerHighlightActive,
+    isSoundEnabled,
+    toggleSound,
+    startQuizzAfterRecordingConfirmed,
   } = useQuizzPage();
 
   if (isLoading) {
@@ -60,6 +63,19 @@ const QuizzPage = () => {
 
   if (!quiz || !currentQuestion) {
     return <QuizNotFoundPhase gradient={randomGradient} />;
+  }
+
+  if (gamePhase === "waiting-for-input") {
+    return (
+      <div>
+        <button
+          onClick={startQuizzAfterRecordingConfirmed}
+          data-testid="start-quizz-button"
+        >
+          Comenzar Quiz
+        </button>
+      </div>
+    );
   }
 
   // Countdown Phase
@@ -119,6 +135,8 @@ const QuizzPage = () => {
         isTransitionProgressVisible={isTransitionProgressVisible}
         isAnswerHighlightActive={isAnswerHighlightActive}
         gradient={randomGradient}
+        onSoundToggle={toggleSound}
+        isSoundEnabled={isSoundEnabled}
       />
     );
   }

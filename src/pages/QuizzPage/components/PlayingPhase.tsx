@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import Timer from "./Timer";
+import { soundManager } from "../../../components/soundManager";
 
 interface PlayingPhaseProps {
   currentQuestion: {
@@ -26,6 +28,8 @@ interface PlayingPhaseProps {
   onAnswerClick: (answerIndex: number) => void;
   onTimerComplete: () => void;
   onTimerMidpoint: () => void;
+  onSoundToggle?: () => void;
+  isSoundEnabled?: boolean;
 }
 
 const PlayingPhase: React.FC<PlayingPhaseProps> = ({
@@ -52,39 +56,48 @@ const PlayingPhase: React.FC<PlayingPhaseProps> = ({
   const progressPercentage =
     ((currentQuestionIndex + 1) / totalQuestions) * 100;
 
+  useEffect(() => {
+    if (selectedAnswer !== null && isAnswerCorrect !== null) {
+      if (isAnswerCorrect) {
+        soundManager.playCorrectAnswer();
+      } else {
+        soundManager.playWrongAnswer();
+      }
+    }
+  }, [selectedAnswer, isAnswerCorrect]);
+
   return (
     <div
-      className={`min-h-screen ${gradient} flex items-center justify-center p-6`}
+      className={`min-h-screen ${gradient} flex items-center justify-center p-2`}
     >
-      <div className="bg-white rounded-2xl shadow-2xl p-10 w-full max-w-4xl max-h-[calc(100vh-3rem)] overflow-y-auto relative animate-fade-in">
+      <div className="bg-white rounded-2xl shadow-2xl p-4 w-full max-w-sm sm:max-w-md md:max-w-xl max-h-[calc(100vh-1rem)] overflow-y-auto relative animate-fade-in">
         {/* Progress */}
-        <div className="flex items-center justify-between mb-8 p-4 bg-gray-50 rounded-xl border animate-slide-in-up">
-          <div className="flex-1 mx-6 h-3 bg-gray-200 rounded-full overflow-hidden">
+        <div className="flex flex-col gap-3 mb-4 p-2 bg-gray-100 rounded-xl border">
+          <div className="w-full h-2 bg-gray-300 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-300 ease-out"
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
-          <div className="text-lg font-semibold text-gray-600 flex items-center gap-2">
-            <span>🏆</span>
-            {score}/{totalQuestions}
-          </div>
-          {/* Timer - positioned in the same row as progress */}
-          {isAutoRunning && selectedAnswer === null && (
-            <div className="ml-4">
+          <div className="flex justify-between items-center text-base font-semibold text-gray-700">
+            <div className="flex items-center gap-2">
+              <span>🏆</span>
+              {score}/{totalQuestions}
+            </div>
+            {isAutoRunning && selectedAnswer === null && (
               <Timer
                 key={timerKey}
                 onComplete={onTimerComplete}
                 onMidpoint={onTimerMidpoint}
               />
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Question */}
-        <div className="mb-10">
+        <div className="mb-6">
           <h2
-            className={`text-4xl font-bold text-gray-800 text-center mb-8 transition-all duration-500 ${
+            className={`text-2xl font-bold text-gray-900 text-center mb-4 leading-snug ${
               isQuestionVisible
                 ? "animate-fade-in opacity-100"
                 : "opacity-0 invisible"
@@ -94,21 +107,23 @@ const PlayingPhase: React.FC<PlayingPhaseProps> = ({
           </h2>
 
           {currentQuestion.imagen && (
-            <img
-              key={`image-${currentQuestion._id}`}
-              src={currentQuestion.imagen}
-              alt="Imagen de la pregunta"
-              className={`w-full max-w-sm h-auto rounded-lg mx-auto mb-8 shadow-lg transition-all duration-500 animate-subtle-scale-pulse ${
-                isImageVisible
-                  ? "animate-slide-in-up opacity-100"
-                  : "opacity-0 invisible"
-              }`}
-            />
+            <div className="flex justify-center mb-4">
+              <img
+                key={`image-${currentQuestion._id}`}
+                src={currentQuestion.imagen}
+                alt="Imagen de la pregunta"
+                className={`w-full max-w-[250px] h-auto rounded-xl shadow-lg transition-all duration-500 ${
+                  isImageVisible
+                    ? "animate-slide-in-up opacity-100"
+                    : "opacity-0 invisible"
+                }`}
+              />
+            </div>
           )}
 
           {/* Answers */}
           <div
-            className={`space-y-3 transition-all duration-500 ${
+            className={`space-y-3 ${
               isAnswersVisible
                 ? "animate-fade-in opacity-100"
                 : "opacity-0 invisible"
@@ -117,31 +132,26 @@ const PlayingPhase: React.FC<PlayingPhaseProps> = ({
             {currentQuestion.respuestas.map(
               (respuesta: string, index: number) => {
                 let buttonClasses =
-                  "w-full p-8 text-left rounded-xl border-2 font-semibold transition-all duration-300 flex items-center justify-between text-2xl transform ";
+                  "w-full p-4 text-left rounded-xl border-2 font-semibold transition-all duration-300 flex items-center justify-between text-base text-lg sm:text-lg md:text-xl transform";
 
-                // Add staggered animation for each answer
                 const staggerClass = `animate-stagger-${index + 1}`;
 
                 if (selectedAnswer === index) {
                   if (isAnswerCorrect === true) {
                     buttonClasses +=
-                      "bg-green-500 border-green-500 text-white shadow-lg animate-scale-up";
+                      " bg-green-500 border-green-500 text-white shadow-md animate-scale-up";
                   } else if (isAnswerCorrect === false) {
                     buttonClasses +=
-                      "bg-red-500 border-red-500 text-white shadow-lg animate-pulse";
+                      " bg-red-500 border-red-500 text-white shadow-md animate-pulse";
                   }
                 } else {
-                  // Base classes for unselected answers
-                  buttonClasses += `bg-white border-gray-200 text-gray-700 hover:border-indigo-400 hover:bg-indigo-50 active:scale-95`;
+                  buttonClasses +=
+                    " bg-white border-gray-200 text-gray-800 hover:border-indigo-400 hover:bg-indigo-50 active:scale-95";
 
-                  // Add entrance animation only when answers are becoming visible
                   if (isAnswersVisible) {
                     buttonClasses += ` animate-slide-in-left ${staggerClass}`;
-                  } else {
-                    buttonClasses += ` opacity-0 invisible`;
                   }
 
-                  // Add highlight classes using pseudo-element to avoid conflicts
                   if (isAnswerHighlightActive && selectedAnswer === null) {
                     buttonClasses += ` answer-highlight-active highlight-delay-${index} relative`;
                   }
@@ -158,8 +168,8 @@ const PlayingPhase: React.FC<PlayingPhaseProps> = ({
                       isAutoRunning
                     }
                   >
-                    <span>{respuesta}</span>
-                    <span className="text-2xl">
+                    <span className="break-words">{respuesta}</span>
+                    <span className="text-xl ml-2">
                       {selectedAnswer === index &&
                         isAnswerCorrect === true &&
                         "✓"}
@@ -176,7 +186,7 @@ const PlayingPhase: React.FC<PlayingPhaseProps> = ({
 
         {/* Transition Progress Bar */}
         {isTransitionProgressVisible && (
-          <div className="mt-6 w-full animate-fade-in">
+          <div className="mt-4 w-full animate-fade-in">
             <div className="w-full bg-gray-200 rounded-full h-1 overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-100 ease-out"
