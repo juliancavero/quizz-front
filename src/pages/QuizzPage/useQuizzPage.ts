@@ -1,7 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import useGetQuiz from "@/api/services/get/useGetQuiz";
-import useAuth from "@/hooks/useAuth";
 import { config } from "../../../config";
 import { soundManager } from "../../components/soundManager";
 
@@ -21,7 +20,7 @@ const gradients = [
 
 const useQuizzPage = () => {
   const { quizzId: quizId } = useParams<{ quizzId: string }>();
-  const { accessToken, isAuthenticated, isLoggingIn } = useAuth();
+  //const { accessToken, isAuthenticated, isLoggingIn } = useAuth();
 
   // Estado para el gradiente aleatorio
   const [randomGradient, setRandomGradient] = useState<string>("");
@@ -52,10 +51,9 @@ const useQuizzPage = () => {
     error,
   } = useGetQuiz({
     quizId: quizId || "",
-    accessToken: accessToken || "",
   });
 
-  const isLoading = isLoggingIn || isLoadingQuiz;
+  const isLoading = isLoadingQuiz;
 
   const currentQuestion = quiz?.preguntas[currentQuestionIndex];
   const totalQuestions = quiz?.preguntas.length || 0;
@@ -326,7 +324,7 @@ const useQuizzPage = () => {
     isLoading,
     error,
     quizId,
-    isAuthenticated,
+    //isAuthenticated,
     randomGradient,
     currentQuestion,
     currentQuestionIndex,

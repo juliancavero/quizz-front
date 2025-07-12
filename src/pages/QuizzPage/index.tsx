@@ -1,7 +1,6 @@
 import useQuizzPage from "./useQuizzPage";
 import {
   LoadingPhase,
-  AuthErrorPhase,
   ErrorPhase,
   QuizNotFoundPhase,
   CountdownPhase,
@@ -15,7 +14,7 @@ const QuizzPage = () => {
     isLoading,
     error,
     quizId,
-    isAuthenticated,
+    //isAuthenticated,
     randomGradient,
     currentQuestion,
     currentQuestionIndex,
@@ -47,9 +46,9 @@ const QuizzPage = () => {
     return <LoadingPhase gradient={randomGradient} />;
   }
 
-  if (!isAuthenticated) {
+  /* if (!isAuthenticated) {
     return <AuthErrorPhase gradient={randomGradient} />;
-  }
+  } */
 
   if (error) {
     return (

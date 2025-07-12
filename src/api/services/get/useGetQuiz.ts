@@ -3,7 +3,6 @@ import axios from "axios";
 
 type GetQuizParams = {
   quizId: string;
-  accessToken: string;
 };
 
 export type Pregunta = {
@@ -29,14 +28,9 @@ export type Quiz = {
   __v: number;
 };
 
-const getQuiz = async ({ quizId, accessToken }: GetQuizParams) => {
+const getQuiz = async ({ quizId }: GetQuizParams) => {
   const { data } = await axios.get<Quiz>(
-    `http://localhost:8080/quizzes/${quizId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
+    `http://localhost:8080/quizzes/${quizId}`
   );
   return data;
 };
@@ -45,7 +39,7 @@ const useGetQuiz = (params: GetQuizParams) => {
   return useQuery({
     queryKey: ["quiz", params.quizId],
     queryFn: () => getQuiz(params),
-    enabled: !!params.quizId && !!params.accessToken,
+    enabled: !!params.quizId,
   });
 };
 
