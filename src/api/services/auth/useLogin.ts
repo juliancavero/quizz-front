@@ -13,7 +13,7 @@ type LoginResponse = {
 const login = async ({ username, password }: LoginParams) => {
   try {
     const { data } = await axios.post<LoginResponse>(
-      "http://localhost:8080/auth/api/login",
+      "https://automated-media.onrender.com/auth/api/login",
       { username, password }
     );
     return data;
