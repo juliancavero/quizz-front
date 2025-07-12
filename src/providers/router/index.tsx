@@ -9,7 +9,6 @@ const router = createHashRouter([
     element: <MainFrame />,
     children: [
       { index: true, path: ":quizzId", element: <QuizzPage /> },
-      { path: ":quizzId", element: <QuizzPage /> },
       { path: "*", element: <NotFound /> },
     ],
   },
